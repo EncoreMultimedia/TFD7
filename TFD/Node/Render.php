@@ -1,5 +1,7 @@
 <?php
-/*
+
+/**
+ * @file
  * This file is part of Twig For Drupal 7.
  *
  * @author René Bakx
@@ -10,8 +12,15 @@
  * Transports the variable to be passed to the render method into a variable
  * before calling the render method. Prevents strict warnings.
  */
+
+/**
+ *
+ */
 class TFD_Node_Render extends Twig_Node_Print {
 
+  /**
+   *
+   */
   public function compile(Twig_Compiler $compiler) {
     $compiler
       ->addDebugInfo($this)
@@ -19,5 +28,5 @@ class TFD_Node_Render extends Twig_Node_Print {
       ->subcompile($this->getNode('expr'))
       ->raw(");\n");
   }
+
 }
- 

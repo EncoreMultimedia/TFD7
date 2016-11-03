@@ -1,7 +1,9 @@
 <?php
-/*
+
+/**
+ * @file
  * This file is part of Twig For Drupal 7.
- **
+ * *.
  * @see http://tfd7.rocks for more information
  *
  * @author René Bakx
@@ -9,19 +11,29 @@
  *
  * @copyright Zicht Online <http://zicht.nl>
  */
+
+/**
+ *
+ */
 class TFD_Node_Switch extends Twig_Node {
+
+  /**
+   *
+   */
   public function __construct(Twig_NodeInterface $cases, Twig_NodeInterface $expression, $line) {
     parent::__construct(
       array(
         'expression' => $expression,
-        'cases' => $cases
+        'cases' => $cases,
       ),
       array(),
       $line
     );
   }
 
-
+  /**
+   *
+   */
   public function compile(Twig_Compiler $compiler) {
     $compiler->addDebugInfo($this);
 
@@ -51,8 +63,8 @@ class TFD_Node_Switch extends Twig_Node {
       $compiler->indent();
       $compiler->subcompile($body);
       if ($i + 1 >= $total || !$this->getNode('cases')
-          ->getNode($i + 1)
-          ->getAttribute('fallthrough')
+        ->getNode($i + 1)
+        ->getAttribute('fallthrough')
       ) {
         $compiler->write("break;\n");
       }
@@ -61,4 +73,5 @@ class TFD_Node_Switch extends Twig_Node {
 
     $compiler->outdent()->write('}');
   }
+
 }

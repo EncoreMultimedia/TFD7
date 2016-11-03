@@ -1,23 +1,36 @@
 <?php
-/*
+
+/**
+ * @file
  * This file is part of Twig For Drupal 7.
- **
+ * *.
  * @see http://tfd7.rocks for more information
  *
  * @author René Bakx
  * @author Gerard van Helden <gerard@zicht.nl>
  * @copyright Zicht Online <http://zicht.nl>
  */
+
+/**
+ *
+ */
 class TFD_Node_With extends Twig_Node {
-  function __construct($items, $body, $options, $line, $tag) {
+
+  /**
+   *
+   */
+  public function __construct($items, $body, $options, $line, $tag) {
     parent::__construct(
       array('body' => $body),
       array('items' => $items, 'options' => $options),
       $line,
       $tag
-    );
+      );
   }
 
+  /**
+   *
+   */
   public function compile(Twig_Compiler $compiler) {
     $compiler
       ->addDebugInfo($this)
@@ -58,13 +71,19 @@ class TFD_Node_With extends Twig_Node {
       ->write('$context = array_pop($withStack);' . "\n");
   }
 
-  function hasOption($value) {
+  /**
+   *
+   */
+  public function hasOption($value) {
     return
       $this->getAttribute('options')
       && in_array($value, $this->getAttribute('options'));
   }
 
-  function compileArgument($compiler, $argument) {
+  /**
+   *
+   */
+  public function compileArgument($compiler, $argument) {
     if (empty($argument['name'])) {
       $compiler
         ->write('(array) ')
@@ -79,6 +98,5 @@ class TFD_Node_With extends Twig_Node {
         ->raw(')');
     }
   }
-
 
 }

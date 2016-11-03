@@ -1,7 +1,9 @@
 <?php
-/*
+
+/**
+ * @file
  * This file is part of Twig For Drupal 7.
- **
+ * *.
  * @see http://tfd7.rocks for more information
  *
  * @author René Bakx
@@ -9,7 +11,7 @@
  */
 
 /**
- * The 'with' tag allows a scope-shift into a defined array. The format is as follows:
+ * The 'with' tag allows a scope-shift into a defined array. The format is as follows:.
  *
  * {% with expr [as localName] [, expr2 [as localName2], [....]]  {sandboxed|merged} %}
  *     content
@@ -60,7 +62,7 @@ class TFD_TokenParser_With extends Twig_TokenParser {
   private $options = array(
     'merged',
     'sandboxed',
-    'only'
+    'only',
   );
 
   /**
@@ -75,7 +77,8 @@ class TFD_TokenParser_With extends Twig_TokenParser {
   /**
    * Parses a token and returns a node.
    *
-   * @param Twig_Token $token A Twig_Token instance
+   * @param Twig_Token $token
+   *   A Twig_Token instance.
    *
    * @return Twig_NodeInterface A Twig_NodeInterface instance
    */
@@ -110,8 +113,11 @@ class TFD_TokenParser_With extends Twig_TokenParser {
     return new TFD_Node_With($arguments, $body, $options, $start->getLine(), $start->getValue());
   }
 
-
-  function decideWithEnd($token) {
+  /**
+   *
+   */
+  public function decideWithEnd($token) {
     return $token->test('endwith');
   }
+
 }

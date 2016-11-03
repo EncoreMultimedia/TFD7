@@ -1,12 +1,17 @@
 <?php
 
 /**
+ * @file
  * Class TFD_Cache_Filesystem
- * Part of the Drupal twig extension distribution
+ * Part of the Drupal twig extension distribution.
  *
  * @see http://tfd7.rocks for more information
  * @author Davy Rolink
  * @author Rene Bakx
+ */
+
+/**
+ *
  */
 class TFD_Cache_Filesystem implements Twig_CacheInterface {
   private $directory;
@@ -16,21 +21,23 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
    * @param $options   int    A set of options
    */
   public function __construct($directory) {
-    
+
     $this->directory = $directory;
   }
 
   /**
    * Generates a cache key for the given template class name.
-   * Cleans the $name, everything before the name is removed
+   * Cleans the $name, everything before the name is removed.
    *
-   * @param string $name The template name
-   * @param string $className The template class name
+   * @param string $name
+   *   The template name.
+   * @param string $className
+   *   The template class name.
    *
    * @return string
    */
   public function generateKey($name, $className) {
-    $name = preg_replace("/(.*\\/themes\\/)/","",$name);
+    $name = preg_replace("/(.*\\/themes\\/)/", "", $name);
     $hash = hash('sha256', $className);
     return $this->directory . '/' . dirname($name) . '/' . basename($name) . '_' . $hash . '.php';;
   }
@@ -38,8 +45,10 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
   /**
    * Writes the compiled template to cache.
    *
-   * @param string $key The cache key
-   * @param string $content The template representation as a PHP class
+   * @param string $key
+   *   The cache key.
+   * @param string $content
+   *   The template representation as a PHP class.
    */
   public function write($key, $content) {
     $directory = dirname($key);
@@ -55,7 +64,8 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
   /**
    * Loads a template from the cache.
    *
-   * @param string $key The cache key
+   * @param string $key
+   *   The cache key.
    */
   public function load($key) {
     // The FALSE returned on failure is enough for the caller to handle this,
@@ -66,7 +76,8 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
   /**
    * Returns the modification timestamp of a key.
    *
-   * @param string $key The cache key
+   * @param string $key
+   *   The cache key.
    *
    * @return int
    */
@@ -236,4 +247,5 @@ EOF;
     // originally requested subdirectory.
     return $this->createDirectory($parent, $mode, TRUE) && mkdir($directory) && chmod($directory, $mode);
   }
+
 }

@@ -1,15 +1,21 @@
 <?php
 
-/*
+/**
+ * @file
  * This file is part of Twig For Drupal 7.
- **
+ * *.
  * @see http://tfd7.rocks for more information
  *
  * @author René Bakx
  * @author Gerard van Helden <gerard@zicht.nl>
  * @copyright Zicht Online <http://zicht.nl>
  */
+
+/**
+ *
+ */
 class TFD_TokenParser_Switch extends Twig_TokenParser {
+
   /**
    * Gets the tag name associated with this token parser.
    *
@@ -22,7 +28,8 @@ class TFD_TokenParser_Switch extends Twig_TokenParser {
   /**
    * Parses a token and returns a node.
    *
-   * @param Twig_Token $token A Twig_Token instance
+   * @param Twig_Token $token
+   *   A Twig_Token instance.
    *
    * @return Twig_NodeInterface A Twig_NodeInterface instance
    */
@@ -35,8 +42,7 @@ class TFD_TokenParser_Switch extends Twig_TokenParser {
     $stream = $this->parser->getStream();
     $stream->expect(Twig_Token::BLOCK_END_TYPE);
 
-
-    // skip whitespace between switch and first case
+    // Skip whitespace between switch and first case.
     while ($stream->test(Twig_Token::TEXT_TYPE)) {
       if (trim($stream->getCurrent()->getValue()) != '') {
         $content = $stream->getCurrent()->getValue();
@@ -62,6 +68,7 @@ class TFD_TokenParser_Switch extends Twig_TokenParser {
               ->parseExpression();
           }
           break;
+
         case 'default':
           $caseExpr = NULL;
           break;
@@ -90,9 +97,11 @@ class TFD_TokenParser_Switch extends Twig_TokenParser {
     return new TFD_Node_Switch(new Twig_Node($tests), $switchExpr, $lineno);
   }
 
-
+  /**
+   *
+   */
   public function decideSwitchFork($token) {
     return $token->test(array('case', 'default', 'endswitch'));
   }
-}
 
+}
