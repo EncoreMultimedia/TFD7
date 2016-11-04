@@ -1,13 +1,14 @@
 <?php
 
 /**
+ * @file
  * This file is part of Twig For Drupal 7.
  *
  * @author René Bakx
  * @co-maintainer Pol Dellaiera
  *
  * @see http://tfd7.rocks for more information
- * 
+ *
  * @version 7.x-3.x
  */
 
@@ -15,15 +16,16 @@
  * Check if the needed classes can be autoloaded or not.
  * If they can be autoloaded it most likely means the site is under
  * composer-manager.
-*/
-if (!class_exists('TFD_Cache_Filesystem') && file_exists(__DIR__.'/vendor/autoload.php')){
-  include_once(__DIR__.'/vendor/autoload.php');
-} else {
+ */
+if (!class_exists('TFD_Cache_Filesystem') && file_exists(__DIR__ . '/vendor/autoload.php')) {
+  include_once __DIR__ . '/vendor/autoload.php';
+}
+else {
   throw new Exception('You need to run composer install before using TFD7');
 }
 
 /**
- * Registers the .tpl.twig extension for twig templates
+ * Registers the .tpl.twig extension for twig templates.
  *
  * @return string
  *   The template extension.
@@ -39,7 +41,7 @@ function twig_extension() {
  */
 function twig_init($theme) {
   if (file_exists($file = dirname($theme->filename) . '/template.php')) {
-    require_once($file);
+    require_once $file;
   }
 }
 
@@ -47,7 +49,7 @@ function twig_init($theme) {
  * Implementation of hook_theme()
  *
  * Registers both twig and php_template functions and templates
- * which is needed to perform the fallback to .tpl.php
+ * which is needed to perform the fallback to .tpl.php.
  */
 function twig_theme($existing, $type, $theme, $path) {
   $templates = drupal_find_theme_functions($existing, array($theme));
@@ -56,12 +58,15 @@ function twig_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implementation of hook ENGINE_render_template
+ * Implementation of hook ENGINE_render_template.
  *
- * Checks if the twig template is available or else let drupal fallback to phptemplate
+ * Checks if the twig template is available or else let drupal fallback to phptemplate.
  *
- * @param <string> $template template filename
- * @param <array> $variables variables to be assigned to template
+ * @param string $template
+ *   template filename.
+ * @param array $variables
+ *   variables to be assigned to template.
+ *
  * @return <string> rendered template
  */
 function twig_render_template($template, $variables = array()) {
@@ -72,7 +77,8 @@ function twig_render_template($template, $variables = array()) {
       $twig = twig_get_instance();
       $template = $twig->loadTemplate($template);
       $content = $template->render($variables);
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
       $content = t('Twig error "!error"', array('!error' => $e->getMessage()));
       die($e->getMessage());
     }
@@ -85,7 +91,8 @@ function twig_render_template($template, $variables = array()) {
 }
 
 /**
- * Clears the entire template cache folder
+ * Clears the entire template cache folder.
+ *
  * @return void
  */
 function twig_clear_cache() {
@@ -94,7 +101,7 @@ function twig_clear_cache() {
 }
 
 /**
- * Returns a singleton version of the twig template engine
+ * Returns a singleton version of the twig template engine.
  *
  * @return TFD_Environment
  */
@@ -102,11 +109,12 @@ function twig_get_instance() {
   static $twig_engine;
   if (!is_object($twig_engine)) {
     $twigEnvironment = array();
-    $twigEnvironment['autorender'] = variable_get('twig_autorender',TRUE);
-    $twigEnvironment['autoescape'] = variable_get('twig_autoescape', FALSE); // Automatically escape all output
-    $twigEnvironment['auto_reload'] = variable_get('twig_auto_reload',TRUE);
-    $twigEnvironment['debug'] = variable_get('theme_debug',FALSE);
-    if (variable_get('twig_filecache', TRUE) === TRUE) {
+    $twigEnvironment['autorender'] = variable_get('twig_autorender', TRUE);
+    // Automatically escape all output.
+    $twigEnvironment['autoescape'] = variable_get('twig_autoescape', FALSE);
+    $twigEnvironment['auto_reload'] = variable_get('twig_auto_reload', TRUE);
+    $twigEnvironment['debug'] = variable_get('theme_debug', FALSE);
+    if (variable_get('twig_filecache', TRUE) == TRUE) {
       $twigEnvironment['cache'] = twig_get_cache_bin();
     }
 
@@ -115,7 +123,9 @@ function twig_get_instance() {
     $loader->addPath(DRUPAL_ROOT);
     foreach ($theme_names as $theme_name => $path) {
       $templatesDirectory = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . 'templates';
-      $loader->addPath($templatesDirectory, $theme_name);
+      if (is_dir($templatesDirectory)) {
+        $loader->addPath($templatesDirectory, $theme_name);
+      }
     }
 
     $twig_engine = new TFD_Environment($loader, $twigEnvironment);
@@ -129,22 +139,19 @@ function twig_get_instance() {
 /**
  * Find templates in the current theme and the base theme
  * return an array where the paths are transformed into
- * theme::point/to/template.twig.tpl
+ * theme::point/to/template.twig.tpl.
  *
  * Cache the implementations because this is a rather expensive
- * call which can occur multiple times per hit
+ * call which can occur multiple times per hit.
  *
  * The directory name 'templates' is omitted,
  * where else would the templates be ;)
  *
- *
  * @return array (
  *                path/to/file = realpath,       // current theme
  *                (base)theme::path/to/file = realpath // parent/base theme
- * )
- *
+ *   )
  */
-
 function twig_get_discovered_templates() {
   $implementations = &drupal_static(__FUNCTION__, array());
   if (!$implementations) {
@@ -201,6 +208,7 @@ function twig_get_theme_paths() {
  * Tests if it is a writable directory to store the twig cache files in.
  *
  * @param $path
+ *
  * @return bool
  */
 function twig_test_cachepath($path) {
@@ -234,7 +242,7 @@ function twig_get_cache_path() {
   }
   else {
     $cache_path = 'public://twig_cache' . '/' . $theme_info->name;
-    // Fallback and create the twig_cache folder in public://
+    // Fallback and create the twig_cache folder in public://.
     file_prepare_directory($cache_path, FILE_CREATE_DIRECTORY);
     if (!twig_test_cachepath($cache_path)) {
       throw new ErrorException('Could not write to a valid cache path');
@@ -253,7 +261,7 @@ function twig_get_cache_bin() {
   static $cache_bin;
 
   if (!is_object($cache_bin)) {
-    $cache_bin = New TFD_Cache_Filesystem(twig_get_cache_path());
+    $cache_bin = new TFD_Cache_Filesystem(twig_get_cache_path());
   }
 
   return $cache_bin;

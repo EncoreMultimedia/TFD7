@@ -21,7 +21,6 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
    * @param $options   int    A set of options
    */
   public function __construct($directory) {
-
     $this->directory = $directory;
   }
 
