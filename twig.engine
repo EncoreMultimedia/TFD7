@@ -112,18 +112,16 @@ function twig_get_instance() {
 
   if (!is_object($twig_engine)) {
     $twigEnvironment = array();
-    $twigEnvironment['autorender'] = variable_get('twig_autorender', TRUE);
-    // Automatically escape all output.
-    $twigEnvironment['autoescape'] = variable_get('twig_autoescape', FALSE);
-    $twigEnvironment['auto_reload'] = variable_get('twig_auto_reload', TRUE);
-    $twigEnvironment['debug'] = variable_get('theme_debug', FALSE);
+    $twigEnvironment['autorender'] = (bool) variable_get('twig_auto_render', TRUE);
+    $twigEnvironment['autoescape'] = (bool) variable_get('twig_auto_escape', FALSE);
+    $twigEnvironment['auto_reload'] = (bool) variable_get('twig_auto_reload', TRUE);
+    $twigEnvironment['debug'] = (bool) variable_get('theme_debug', FALSE);
     if (variable_get('twig_filecache', FALSE) == TRUE) {
       $twigEnvironment['cache'] = twig_get_cache_bin();
     }
 
     $loader = new TFD_Loader_Filesystem();
     $theme_names = twig_get_theme_paths();
-    $loader->addPath(DRUPAL_ROOT);
     foreach ($theme_names as $theme_name => $path) {
       $templatesDirectory = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . 'templates';
       if (is_dir($templatesDirectory)) {
