@@ -59,16 +59,12 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
    * @param $uri
    *   A string containing the URI to the file to open.
    * @param $mode
-   *   The file mode ("r", "wb" etc.).
+   *   The file mode.
    * @param $options
    *   A bit mask of STREAM_USE_PATH and STREAM_REPORT_ERRORS.
-   * @param $opened_path
-   *   A string containing the path actually opened.
    *
-   * @return
+   * @return bool
    *   Returns TRUE if file was opened successfully.
-   *
-   * @see http://php.net/manual/streamwrapper.stream-open.php
    */
   public function open($uri, $mode, $options) {
     $opened_path = NULL;
