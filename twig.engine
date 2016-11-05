@@ -93,11 +93,13 @@ function twig_render_template($template, $variables = array()) {
 /**
  * Clears the entire template cache folder.
  *
+ * Note: This is not a hook because it's not a .module file.
+ * This function must be called from another module.
+ *
  * @return void
  */
 function twig_clear_cache() {
   twig_get_cache_bin()->deleteAll();
-  watchdog('twig', 'All caches cleared');
 }
 
 /**
@@ -107,6 +109,7 @@ function twig_clear_cache() {
  */
 function twig_get_instance() {
   static $twig_engine;
+
   if (!is_object($twig_engine)) {
     $twigEnvironment = array();
     $twigEnvironment['autorender'] = variable_get('twig_autorender', TRUE);
@@ -228,22 +231,19 @@ function twig_cache_scheme_is_valid($scheme) {
  *
  * @return string
  *   The scheme
- *
- * @throws ErrorException
  */
 function twig_get_cache_scheme() {
-  global $theme_info;
   $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
 
   if (isset($streamwrappers['twigcache'])) {
     return 'twigcache://';
   }
   elseif (variable_get('file_private_path', FALSE) == TRUE) {
-    return 'private://twig_cache/' . $theme_info->name;
+    return 'private://twig_cache/';
   }
   else {
     // Fallback and use the twig_cache folder in public://.
-    return 'public://twig_cache/' . $theme_info->name;
+    return 'public://twig_cache/';
   }
 }
 
@@ -260,22 +260,25 @@ function twig_get_cache_bin() {
 
   if (!is_object($cache_bin)) {
     $cache_scheme = twig_get_cache_scheme();
-    file_prepare_directory($cache_scheme, FILE_CREATE_DIRECTORY);
-
-    $wrapper = file_stream_wrapper_get_instance_by_scheme(file_uri_scheme($cache_scheme));
+    list($scheme, $target) = explode('://', $cache_scheme, 2);
+    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
     if (!twig_cache_scheme_is_valid($cache_scheme)) {
       $directory = $wrapper->getDirectoryPath();
 
       $message = t('Could not write in cache directory: @directory', array(
-        '@directory' => $directory,
-      )
+          '@directory' => $directory,
+        )
       );
 
       watchdog('twig', $message, array(), WATCHDOG_ERROR);
       throw new ErrorException($message);
     }
 
-    $cache_bin = new TFD_Cache_Filesystem($wrapper->getDirectoryPath());
+    if ($target) {
+      $wrapper->setUri($cache_scheme);
+    }
+
+    $cache_bin = new TFD_Cache_Filesystem($wrapper);
   }
 
   return $cache_bin;
