@@ -114,7 +114,7 @@ function twig_get_instance() {
     $twigEnvironment['autoescape'] = variable_get('twig_autoescape', FALSE);
     $twigEnvironment['auto_reload'] = variable_get('twig_auto_reload', TRUE);
     $twigEnvironment['debug'] = variable_get('theme_debug', FALSE);
-    if (variable_get('twig_filecache', TRUE) == TRUE) {
+    if (variable_get('twig_filecache', FALSE) == TRUE) {
       $twigEnvironment['cache'] = twig_get_cache_bin();
     }
 
@@ -204,18 +204,19 @@ function twig_get_theme_paths() {
 }
 
 /**
- * Converts the stream name to a realdir location and
  * Tests if it is a writable directory to store the twig cache files in.
  *
- * @param $path
+ * @param string $scheme
+ *   The scheme to validate.
  *
  * @return bool
+ *   True is valid, otherwise False.
  */
-function twig_test_cachepath($path) {
-  if (file_stream_wrapper_valid_scheme(file_uri_scheme($path))) {
-    $path = drupal_dirname($path);
-    if (is_dir($path) && is_writable($path)) {
-      return $path;
+function twig_cache_scheme_is_valid($scheme) {
+  if (file_stream_wrapper_valid_scheme(file_uri_scheme($scheme))) {
+    $scheme = drupal_dirname($scheme);
+    if (is_dir($scheme) && is_writable($scheme)) {
+      return TRUE;
     }
   }
 
@@ -223,45 +224,58 @@ function twig_test_cachepath($path) {
 }
 
 /**
+ * Get the cache scheme.
+ *
  * @return string
+ *   The scheme
+ *
  * @throws ErrorException
  */
-function twig_get_cache_path() {
+function twig_get_cache_scheme() {
   global $theme_info;
+  $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
 
-  $cache_path = variable_get('file_twigcache_path', FALSE);
-  if (FALSE !== $cache_path) {
-    file_prepare_directory($cache_path, FILE_CREATE_DIRECTORY);
-    return $cache_path;
+  if (isset($streamwrappers['twigcache'])) {
+    return 'twigcache://';
   }
-  elseif (FALSE !== $cache_path = twig_test_cachepath('private://twig_cache' . '/' . $theme_info->name)) {
-    return $cache_path;
-  }
-  elseif (FALSE !== $cache_path = twig_test_cachepath('public://twig_cache' . '/' . $theme_info->name)) {
-    return $cache_path;
+  elseif (variable_get('file_private_path', FALSE) == TRUE) {
+    return 'private://twig_cache/' . $theme_info->name;
   }
   else {
-    $cache_path = 'public://twig_cache' . '/' . $theme_info->name;
-    // Fallback and create the twig_cache folder in public://.
-    file_prepare_directory($cache_path, FILE_CREATE_DIRECTORY);
-    if (!twig_test_cachepath($cache_path)) {
-      throw new ErrorException('Could not write to a valid cache path');
-    }
-    else {
-      return $cache_path;
-    }
+    // Fallback and use the twig_cache folder in public://.
+    return 'public://twig_cache/' . $theme_info->name;
   }
 }
 
 /**
+ * Get the cache bin.
+ *
  * @return TFD_Cache_Filesystem
+ *   The cache bin.
+ *
  * @throws ErrorException
  */
 function twig_get_cache_bin() {
   static $cache_bin;
 
   if (!is_object($cache_bin)) {
-    $cache_bin = new TFD_Cache_Filesystem(twig_get_cache_path());
+    $cache_scheme = twig_get_cache_scheme();
+    file_prepare_directory($cache_scheme, FILE_CREATE_DIRECTORY);
+
+    $wrapper = file_stream_wrapper_get_instance_by_scheme(file_uri_scheme($cache_scheme));
+    if (!twig_cache_scheme_is_valid($cache_scheme)) {
+      $directory = $wrapper->getDirectoryPath();
+
+      $message = t('Could not write in cache directory: @directory', array(
+        '@directory' => $directory,
+      )
+      );
+
+      watchdog('twig', $message, array(), WATCHDOG_ERROR);
+      throw new ErrorException($message);
+    }
+
+    $cache_bin = new TFD_Cache_Filesystem($wrapper->getDirectoryPath());
   }
 
   return $cache_bin;
