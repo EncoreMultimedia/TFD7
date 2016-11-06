@@ -38,34 +38,20 @@ class TFD_Cache_Filesystem extends Twig_Cache_Filesystem implements Twig_CacheIn
   /**
    * Deletes files and/or directories in the specified path.
    *
-   * If the specified path is a directory the method will
-   * call itself recursively to process the contents. Once the contents have
-   * been removed the directory will also be removed.
-   *
-   * @param string $path
-   *   A string containing either a file or directory path.
+   * @param string $dir
+   *   A string containing a directory path.
    *
    * @return bool
-   *   TRUE for success or if path does not exist, FALSE in the event of an
-   *   error.
+   *   Return TRUE for success.
    */
-  protected function unlink($path) {
-    if (file_exists($path)) {
-      if (is_dir($path)) {
-        // Ensure the folder is writable.
-        @chmod($path, 0777);
-        foreach (new \DirectoryIterator($path) as $fileinfo) {
-          if (!$fileinfo->isDot()) {
-            $this->unlink($fileinfo->getPathName());
-          }
-        }
-        return @rmdir($path);
-      }
-      // Windows needs the file to be writable.
-      @chmod($path, 0700);
-      return @unlink($path);
+  protected function unlink($dir) {
+    $di = new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS);
+    $ri = new RecursiveIteratorIterator($di, RecursiveIteratorIterator::CHILD_FIRST);
+
+    foreach ( $ri as $file ) {
+      $file->isDir() ?  rmdir($file) : unlink($file);
     }
-    // If there's nothing to delete return TRUE anyway.
+
     return TRUE;
   }
 
