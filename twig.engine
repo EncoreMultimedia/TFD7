@@ -193,20 +193,16 @@ function twig_get_theme_paths() {
   $theme_paths = array();
 
   $theme_root = dirname($available_themes[$theme]->filename);
-  $theme_paths[$theme] = array($theme_root);
-  if (is_dir($theme_root . '/templates')) {
-    $theme_paths[$theme] += _twig_get_subdirectories_in($theme_root . '/templates');
-  }
+  $theme_paths[$theme] = array($theme_root => $theme_root);
+  $theme_paths[$theme] += _twig_get_subdirectories_in($theme_root . '/templates');
 
   $basethemes = drupal_find_base_themes($available_themes, $theme);
   if (count($basethemes) > 0) {
     foreach (array_keys($basethemes) as $basename) {
       if (isset($available_themes[$basename])) {
         $basetheme_root = dirname($available_themes[$basename]->filename);
-        $theme_paths[$basename] = array($basetheme_root);
-        if (is_dir($basetheme_root . '/templates')) {
-          $theme_paths[$basename] += _twig_get_subdirectories_in($basetheme_root . '/templates');
-        }
+        $theme_paths[$basename] = array($basetheme_root => $basetheme_root);
+        $theme_paths[$basename] += _twig_get_subdirectories_in($basetheme_root . '/templates');
       }
     }
   }
@@ -231,15 +227,15 @@ function _twig_get_subdirectories_in($root) {
   }
 
   $iter = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($root),
+    new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS),
     RecursiveIteratorIterator::SELF_FIRST,
     RecursiveIteratorIterator::CATCH_GET_CHILD
   );
 
-  $paths = array($root);
+  $paths = array($root => $root);
   foreach ($iter as $path => $dir) {
     if ($dir->isDir()) {
-      $paths[] = $path;
+      $paths[$path] = $path;
     }
   }
 
