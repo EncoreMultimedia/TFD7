@@ -13,7 +13,6 @@
 class TFD_Environment extends Twig_Environment {
 
   protected $templateClassPrefix = '__TFDTemplate_';
-  protected $fileExtension = 'tpl.twig';
   protected $autoRender = FALSE;
 
   /**
@@ -34,53 +33,8 @@ class TFD_Environment extends Twig_Environment {
   /**
    *
    */
-  private function generateCacheKeyByName($name) {
-    return $name = preg_replace('/\.' . $this->fileExtension . '$/', '', $this->loader->getCacheKey($name));
-  }
-
-  /**
-   *
-   */
   public function isAutoRender() {
     return $this->autoRender;
-  }
-
-  /**
-   * Returns the name of the class to be created
-   * which is also the name of the cached instance.
-   *
-   * @param string $name
-   *   of template.
-   *
-   * @return string
-   */
-  public function getTemplateClass($name, $index = NULL) {
-    $cls = &drupal_static(__METHOD__ . $name);
-
-    if (!isset($cls)) {
-      $pattern = '/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/';
-      preg_match_all($pattern, $this->generateCacheKeyByName($name), $matches);
-
-      $cls = implode('_', $matches[0]);
-    }
-
-    return $cls;
-  }
-
-  /**
-   *
-   */
-  public function loadTemplate($name, $index = NULL) {
-
-    if (substr_count($name, '::') == 1) {
-      // $paths = twig_get_discovered_templates(); // Very expensive call.
-      /** @var TFD_Loader_Filesystem $loader */
-      $loader = $this->getLoader();
-      $name = $loader->findTemplate($name);
-      // $name = $paths[$name];.
-    }
-
-    return parent::loadTemplate($name, $index);
   }
 
 }

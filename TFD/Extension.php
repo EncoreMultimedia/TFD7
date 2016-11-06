@@ -65,7 +65,6 @@ class TFD_Extension extends Twig_Extension {
    */
   public function getTokenParsers() {
     $parsers = array();
-    $parsers[] = new TFD_TokenParser_With();
     $parsers[] = new TFD_TokenParser_Switch();
     return $parsers;
   }
@@ -121,7 +120,6 @@ class TFD_Extension extends Twig_Extension {
     $functions['classname'] = new Twig_SimpleFunction('classname', 'get_class');
     $functions['variable_get'] = new Twig_SimpleFunction('variable_get', 'variable_get');
     $functions['array_search'] = new Twig_SimpleFunction('array_search', 'array_search');
-
     $functions['current_path'] = new Twig_SimpleFunction('current_path', 'current_path');
 
     // TFD Functions.

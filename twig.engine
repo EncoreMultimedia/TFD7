@@ -120,11 +120,12 @@ function twig_get_instance() {
       $twigEnvironment['cache'] = twig_get_cache_bin();
     }
 
-    $loader = new TFD_Loader_Filesystem();
+    $loader = new Twig_Loader_Filesystem();
     $theme_names = twig_get_theme_paths();
-    foreach ($theme_names as $theme_name => $path) {
-      $templatesDirectory = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . 'templates';
-      if (is_dir($templatesDirectory)) {
+    $loader->addPath(DRUPAL_ROOT);
+    foreach ($theme_names as $theme_name => $paths) {
+      foreach ($paths as $path) {
+        $templatesDirectory = DRUPAL_ROOT . DIRECTORY_SEPARATOR . $path;
         $loader->addPath($templatesDirectory, $theme_name);
       }
     }
@@ -187,21 +188,62 @@ function twig_get_discovered_templates() {
 function twig_get_theme_paths() {
   global $theme;
 
-  $available_themes    = list_themes();
+  $available_themes = list_themes();
   $available_themes[$theme]->info += array('base theme' => NULL);
-  $theme_paths         = array();
-  $theme_paths[$theme] = dirname($available_themes[$theme]->filename);
-  $basethemes          = drupal_find_base_themes($available_themes, $theme);
+  $theme_paths = array();
 
+  $theme_root = dirname($available_themes[$theme]->filename);
+  $theme_paths[$theme] = array($theme_root);
+  if (is_dir($theme_root . '/templates')) {
+    $theme_paths[$theme] += _twig_get_subdirectories_in($theme_root . '/templates');
+  }
+
+  $basethemes = drupal_find_base_themes($available_themes, $theme);
   if (count($basethemes) > 0) {
     foreach (array_keys($basethemes) as $basename) {
       if (isset($available_themes[$basename])) {
-        $theme_paths[$basename] = dirname($available_themes[$basename]->filename);
+        $basetheme_root = dirname($available_themes[$basename]->filename);
+        $theme_paths[$basename] = array($basetheme_root);
+        if (is_dir($basetheme_root . '/templates')) {
+          $theme_paths[$basename] += _twig_get_subdirectories_in($basetheme_root . '/templates');
+        }
       }
     }
   }
 
   return $theme_paths;
+}
+
+/**
+ * Return the list of sub directories in a directory.
+ *
+ * TODO: Is there a Drupal core function for this already?
+ *
+ * @param string $root
+ *   The parent directory.
+ *
+ * @return string[]
+ *   The subdirectories.
+ */
+function _twig_get_subdirectories_in($root) {
+  if (!is_dir($root)) {
+    $root = dirname($root);
+  }
+
+  $iter = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($root),
+    RecursiveIteratorIterator::SELF_FIRST,
+    RecursiveIteratorIterator::CATCH_GET_CHILD
+  );
+
+  $paths = array($root);
+  foreach ($iter as $path => $dir) {
+    if ($dir->isDir()) {
+      $paths[] = $path;
+    }
+  }
+
+  return $paths;
 }
 
 /**
