@@ -100,9 +100,9 @@ class TFD_Cache_Filesystem implements Twig_CacheInterface {
   public function load($key) {
     $key = $this->wrapper . $key;
 
-    // The FALSE returned on failure is enough for the caller to handle this,
-    // we do not want a warning too.
-    return (include_once $key) !== FALSE;
+    if (file_exists($key)) {
+      @include_once $key;
+    }
   }
 
   /**
