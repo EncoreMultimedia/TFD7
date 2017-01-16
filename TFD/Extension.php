@@ -149,15 +149,10 @@ class TFD_Extension extends Twig_Extension {
  * @return string
  */
 function tfd_render($var) {
-  if (isset($var) && !is_null($var)) {
-    if (is_scalar($var)) {
-      return $var;
-    }
-    elseif (is_array($var)) {
-      return render($var);
-    }
-    return $var;
+  if (is_array($var)) {
+    return render($var);
   }
+  return $var;
 }
 
 
