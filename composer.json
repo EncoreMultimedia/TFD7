@@ -5,7 +5,7 @@
     "homepage":  "http://tfd7.rocks",    
     "type": "library",
     "require": {
-        "twig/twig": "^1.23"
+        "twig/twig": "^1.23|^2"
     },
     "license": "BSD-3-Clause",
     "authors": [

@@ -40,14 +40,6 @@ class TFD_Extension extends Twig_Extension {
     );
   }
 
-  /* registers the drupal specific tags */
-  public function getTokenParsers() {
-    $parsers = array();
-    $parsers[] = new TFD_TokenParser_With();
-    $parsers[] = new TFD_TokenParser_Switch();
-    return $parsers;
-  }
-
   /**
    * registers the drupal specific filters
    * @implements hook_twig_filter
