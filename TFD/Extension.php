@@ -135,7 +135,13 @@ class TFD_Extension extends Twig_Extension {
     $functions['get_form_errors'] = new Twig_SimpleFunction('get_form_errors', [$this, 'form_get_errors']);
     $functions['children'] = new Twig_SimpleFunction('children', [$this, 'get_children']);
     $functions['theme_path'] = new Twig_SimpleFunction('theme_path', [$this, 'theme_path']);
-
+    if (function_exists('xdebug_break')) {
+      $functions[] = new Twig_SimpleFunction('xdebug_break', [$this,'xdebug_break'],
+        [
+          'needs_environment' => TRUE,
+          'needs_context' => TRUE,
+        ]);
+    }
     $functions = array_merge($functions, module_invoke_all('twig_function', $functions, $this));
     return $functions;
   }
@@ -219,6 +225,13 @@ class TFD_Extension extends Twig_Extension {
     if (!is_null($var) && !is_scalar($var) && count($var) > 0) {
       hide($var);
     }
+  }
+  /**
+  * Simple wrapper for xdebug_break()
+  */
+  public function xdebug_break(Twig_Environment $environment, $context) {
+    $_xdebug_caller = xdebug_call_file() . ' line ' . xdebug_call_line();
+    xdebug_break();
   }
 
   /**
