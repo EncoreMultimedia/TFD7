@@ -568,6 +568,7 @@ class TFD_Extension extends Twig_Extension {
       $block = db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta AND theme = :theme', array(
         ':module' => $module,
         ':delta' => $delta,
+        ':theme' => $theme,
       ))->fetchObject();
     }
     if ($block) {
