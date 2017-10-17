@@ -554,8 +554,8 @@ class TFD_Extension extends Twig_Extension {
    */
   public function view_block($delta, $module = NULL, $render = TRUE) {
     $output = FALSE;
+    global $theme;
     if (is_null($module)) {
-      global $theme;
       if (FALSE !== $block = db_query('SELECT * FROM {block} WHERE theme= :theme AND delta = :delta', array(
         ':theme' => $theme,
         ':delta' => $delta,
