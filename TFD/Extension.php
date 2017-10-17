@@ -7,6 +7,8 @@
  * @see http://tfd7.rocks for more information
  *
  * @author René Bakx
+ * @co-maintainer Pol Dellaiera
+ 
  * @description register the drupal specific tags and filters within a proper
  * declared twig extension
  */
@@ -563,7 +565,7 @@ class TFD_Extension extends Twig_Extension {
       }
     }
     else {
-      $block = db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta', array(
+      $block = db_query('SELECT * FROM {block} WHERE module = :module AND delta = :delta AND theme = :theme', array(
         ':module' => $module,
         ':delta' => $delta,
       ))->fetchObject();
