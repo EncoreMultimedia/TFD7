@@ -121,7 +121,7 @@ function twig_get_instance() {
     }
 
     $loader = new Twig_Loader_Filesystem();
-    $theme_names = twig_get_theme_paths();
+    $theme_names = twig_get_theme_namespaces();
     $loader->addPath(DRUPAL_ROOT);
     foreach ($theme_names as $theme_name => $paths) {
       foreach ($paths as $path) {
@@ -182,8 +182,41 @@ function twig_get_discovered_templates() {
   return $implementations;
 }
 
+**
+ * Returns an array of theme template paths by theme namespace.
+ *
+ * @return array[]
+ *   The theme template paths keyed by theme namespace.
+ */
+function twig_get_theme_namespaces() {
+  $available_themes = list_themes();
+  $namespaces = [];
+
+  foreach (twig_get_theme_paths() as $theme => $paths) {
+    $namespaces[$theme] = $paths;
+    $theme_root = dirname($available_themes[$theme]->filename);
+    if (!empty($available_themes[$theme]->info['namespaces'])) {
+      /** @var array $namespaces */
+      $theme_namespaces = $available_themes[$theme]->info['namespaces'];
+      foreach ($theme_namespaces as $namespace => $path) {
+        $ns_path = implode(DIRECTORY_SEPARATOR,
+          [
+            trim($theme_root, DIRECTORY_SEPARATOR),
+            trim($path, DIRECTORY_SEPARATOR),
+          ]);
+        $namespaces[$namespace] = [$ns_path => $ns_path];
+      }
+    }
+  }
+
+  return $namespaces;
+}
+
 /**
- * @return array
+ * Returns an array of theme paths by theme name.
+ *
+ * @return array[]
+ *   The theme paths keyed by theme name.
  */
 function twig_get_theme_paths() {
   global $theme;
