@@ -17,9 +17,13 @@
             "role": "Developer"
         }
     ],
+    "require": {
+        "twig/twig":"^1",
+        "composer/installers": "^1"
+    }
     "autoload": {
         "psr-0" : {
-            "TFD_" : ""
+            "TFD_" : "lib"
         }
     },
     "minimum-stability": "stable"
