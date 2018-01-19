@@ -22,8 +22,5 @@
             "TFD_" : ""
         }
     },
-    "require": {
-        "twig/twig": "^1.2"
-    },
     "minimum-stability": "stable"
 }
