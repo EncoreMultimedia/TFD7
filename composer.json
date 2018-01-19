@@ -25,9 +25,5 @@
     "require": {
         "twig/twig": "^1.2"
     },
-    "require-dev": {
-        "drupal/drupal":"^7",
-        "twig/twig": "^1.2"
-    },
     "minimum-stability": "stable"
 }
