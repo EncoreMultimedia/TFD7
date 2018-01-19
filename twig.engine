@@ -182,15 +182,14 @@ function twig_get_discovered_templates() {
   return $implementations;
 }
 
-**
- * Returns an array of theme template paths by theme namespace.
- *
- * @return array[]
- *   The theme template paths keyed by theme namespace.
+/**
+ * Build the @theme namespace array
+ * 
+ * @return array
  */
 function twig_get_theme_namespaces() {
   $available_themes = list_themes();
-  $namespaces = [];
+  $namespaces = array();
 
   foreach (twig_get_theme_paths() as $theme => $paths) {
     $namespaces[$theme] = $paths;
@@ -200,11 +199,11 @@ function twig_get_theme_namespaces() {
       $theme_namespaces = $available_themes[$theme]->info['namespaces'];
       foreach ($theme_namespaces as $namespace => $path) {
         $ns_path = implode(DIRECTORY_SEPARATOR,
-          [
+          array(
             trim($theme_root, DIRECTORY_SEPARATOR),
             trim($path, DIRECTORY_SEPARATOR),
-          ]);
-        $namespaces[$namespace] = [$ns_path => $ns_path];
+          ));
+        $namespaces[$namespace] = array($ns_path => $ns_path);
       }
     }
   }
@@ -215,8 +214,7 @@ function twig_get_theme_namespaces() {
 /**
  * Returns an array of theme paths by theme name.
  *
- * @return array[]
- *   The theme paths keyed by theme name.
+ *  @return array  The theme paths keyed by theme name.
  */
 function twig_get_theme_paths() {
   global $theme;
