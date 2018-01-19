@@ -3,7 +3,7 @@
     "description": "Twig for Drupal 7, use the same convenient template language as in Drupal 8 core",
     "keywords": ["templating","drupal","twig"],     
     "homepage":  "http://tfd7.rocks",    
-    "type": "library",
+    "type": "drupal-theme",
     "require": {
         "twig/twig": "^1.2"
     },
