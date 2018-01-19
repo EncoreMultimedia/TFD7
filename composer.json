@@ -1,5 +1,5 @@
 {
-    "name": "tfd7/tfd7",
+    "name": "drupal/tfd7",
     "description": "Twig for Drupal 7, use the same convenient template language as in Drupal 8 core",
     "keywords": ["templating","drupal","twig"],     
     "homepage":  "https://tfd7.rocks",    
