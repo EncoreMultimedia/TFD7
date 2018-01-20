@@ -4,7 +4,7 @@
     "keywords": ["templating","drupal","twig"],     
     "homepage":  "https://tfd7.rocks",    
     "type": "drupal-theme",
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "Rene Bakx",
