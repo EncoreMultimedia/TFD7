@@ -3,8 +3,8 @@
     "description": "Twig for Drupal 7, use the same convenient template language as in Drupal 8 core",
     "keywords": ["templating","drupal","twig"],     
     "homepage":  "https://tfd7.rocks",    
-    "type": "drupal-theme",
-    "license": "GPL-2.0-or-later",
+    "type": "drupal-module",
+    "license": "GPL-2.0",
     "authors": [
         {
             "name": "Rene Bakx",
@@ -19,6 +19,7 @@
     ],
     "require": {
         "twig/twig":"^1",
+        "drupal/drupal":"^7.54",
         "composer/installers": "^1"
     },
     "autoload": {

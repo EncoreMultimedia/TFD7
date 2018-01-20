@@ -1,0 +1,7 @@
+name = TFD7
+description = Twig for Drupal 7 Theme engine as module.
+package = Theme
+core = 7.54
+files[] = tfd7.module
+files[] = twig.engine
+
