@@ -16,12 +16,16 @@
  * Check if the needed classes can be autoloaded or not.
  * If they can be autoloaded it most likely means the site is under
  * composer-manager.
+ *
+ * TODO
+ * Check if loadable, if not then asume composer manager is not running
+ * check for xautoload and for DRUPAL_ROOT/../vendor/autoload
+ * if xautoload is there, hook in composer else bluntly require once the autoload.php
  */
 if (!class_exists('TFD_Cache_Filesystem') && file_exists(__DIR__ . '/vendor/autoload.php')) {
   include_once __DIR__ . '/vendor/autoload.php';
-}
-else {
-  throw new Exception('You need to run composer install before using TFD7');
+} else {
+  // throw new Exception('You need to run composer install before using TFD7');
 }
 
 /**
@@ -30,7 +34,8 @@ else {
  * @return string
  *   The template extension.
  */
-function twig_extension() {
+function twig_extension()
+{
   return '.tpl.twig';
 }
 
@@ -39,7 +44,8 @@ function twig_extension() {
  *
  * Note: called at rebuild registry!
  */
-function twig_init($theme) {
+function twig_init($theme)
+{
   if (file_exists($file = dirname($theme->filename) . '/template.php')) {
     require_once $file;
   }
@@ -51,7 +57,8 @@ function twig_init($theme) {
  * Registers both twig and php_template functions and templates
  * which is needed to perform the fallback to .tpl.php.
  */
-function twig_theme($existing, $type, $theme, $path) {
+function twig_theme($existing, $type, $theme, $path)
+{
   $templates = drupal_find_theme_functions($existing, array($theme));
   $templates += drupal_find_theme_templates($existing, twig_extension(), $path);
   return $templates;
@@ -69,7 +76,8 @@ function twig_theme($existing, $type, $theme, $path) {
  *
  * @return <string> rendered template
  */
-function twig_render_template($template, $variables = array()) {
+function twig_render_template($template, $variables = array())
+{
   $content = '';
 
   if (file_exists($template)) {
@@ -77,13 +85,11 @@ function twig_render_template($template, $variables = array()) {
       $twig = twig_get_instance();
       $template = $twig->loadTemplate($template);
       $content = $template->render($variables);
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
       $content = t('Twig error "!error"', array('!error' => $e->getMessage()));
       die($e->getMessage());
     }
-  }
-  else {
+  } else {
     $content = t('Template (!template) not found ', array('!template' => $template));
   }
 
@@ -98,7 +104,8 @@ function twig_render_template($template, $variables = array()) {
  *
  * @return void
  */
-function twig_clear_cache() {
+function twig_clear_cache()
+{
   twig_get_cache_bin()->deleteAll();
 }
 
@@ -107,18 +114,19 @@ function twig_clear_cache() {
  *
  * @return TFD_Environment
  */
-function twig_get_instance() {
+function twig_get_instance()
+{
   static $twig_engine;
 
   if (!is_object($twig_engine)) {
     $twigEnvironment = array();
-    $twigEnvironment['autorender'] = (bool) variable_get('twig_auto_render', TRUE);
-    $twigEnvironment['autoescape'] = (bool) variable_get('twig_auto_escape', FALSE);
-    $twigEnvironment['auto_reload'] = (bool) variable_get('twig_auto_reload', TRUE);
-    $twigEnvironment['debug'] = (bool) variable_get('theme_debug', FALSE);
-    if (variable_get('twig_filecache', FALSE) == TRUE) {
-      $twigEnvironment['cache'] = twig_get_cache_bin();
-    }
+    $twigEnvironment['autorender'] = (bool)variable_get('twig_auto_render', TRUE);
+    $twigEnvironment['autoescape'] = (bool)variable_get('twig_auto_escape', FALSE);
+    $twigEnvironment['auto_reload'] = (bool)variable_get('twig_auto_reload', TRUE);
+    $twigEnvironment['debug'] = (bool)variable_get('theme_debug', FALSE);
+
+    $twigEnvironment['cache'] = twig_get_cache_bin();
+
 
     $loader = new Twig_Loader_Filesystem();
     $theme_names = twig_get_theme_namespaces();
@@ -129,7 +137,6 @@ function twig_get_instance() {
         $loader->addPath($templatesDirectory, $theme_name);
       }
     }
-
     $twig_engine = new TFD_Environment($loader, $twigEnvironment);
     $twig_engine->addExtension(new TFD_Extension());
     drupal_alter('twig_init', $twig_engine);
@@ -138,87 +145,47 @@ function twig_get_instance() {
   return $twig_engine;
 }
 
-/**
- * Find templates in the current theme and the base theme
- * return an array where the paths are transformed into
- * theme::point/to/template.twig.tpl.
- *
- * Cache the implementations because this is a rather expensive
- * call which can occur multiple times per hit.
- *
- * The directory name 'templates' is omitted,
- * where else would the templates be ;)
- *
- * @return array (
- *                path/to/file = realpath,       // current theme
- *                (base)theme::path/to/file = realpath // parent/base theme
- *   )
- */
-function twig_get_discovered_templates() {
-  $implementations = &drupal_static(__FUNCTION__, array());
-  if (!$implementations) {
-    global $theme;
-    $theme_paths = twig_get_theme_paths();
-    $regex = '/' . str_replace('.', '\.', twig_extension()) . '$/';
-    foreach ($theme_paths as $theme_name => $path) {
-      $files = drupal_system_listing($regex, $path, 'name', 0);
-      $theme_folder = '/themes/' . $theme_name . '/';
-      foreach ($files as $template => $file) {
-        $matches = explode($theme_folder, $file->uri);
-        $converted_path = str_replace('templates/', '', $matches[1]);
-        $realpath = dirname($file->uri) . '/' . $file->filename;
-
-        if ($theme === $theme_name) {
-          $implementations[$converted_path] = $realpath;
-        }
-        else {
-          $implementations[$theme_name . '::' . $converted_path] = $realpath;
-        }
-
-      }
-    }
-
-  }
-  return $implementations;
-}
 
 /**
  * Build the @theme namespace array
- * 
+ *
  * @return array
  */
-function twig_get_theme_namespaces() {
-  $available_themes = list_themes();
-  $namespaces = array();
+function twig_get_theme_namespaces()
+{
+  $namespaces = &drupal_static(__FUNCTION__, array());
+  if (!$namespaces) {
+    $available_themes = list_themes();
+    $namespaces = array();
 
-  foreach (twig_get_theme_paths() as $theme => $paths) {
-    $namespaces[$theme] = $paths;
-    $theme_root = dirname($available_themes[$theme]->filename);
-    if (!empty($available_themes[$theme]->info['namespaces'])) {
-      /** @var array $namespaces */
-      $theme_namespaces = $available_themes[$theme]->info['namespaces'];
-      foreach ($theme_namespaces as $namespace => $path) {
-        $ns_path = implode(DIRECTORY_SEPARATOR,
-          array(
-            trim($theme_root, DIRECTORY_SEPARATOR),
-            trim($path, DIRECTORY_SEPARATOR),
-          ));
-        $namespaces[$namespace] = array($ns_path => $ns_path);
+    foreach (twig_get_theme_paths() as $theme => $paths) {
+      $namespaces[$theme] = $paths;
+      $theme_root = dirname($available_themes[$theme]->filename);
+      if (!empty($available_themes[$theme]->info['namespaces'])) {
+        /** @var array $namespaces */
+        $theme_namespaces = $available_themes[$theme]->info['namespaces'];
+        foreach ($theme_namespaces as $namespace => $path) {
+          $ns_path = implode(DIRECTORY_SEPARATOR,
+            array(
+              trim($theme_root, DIRECTORY_SEPARATOR),
+              trim($path, DIRECTORY_SEPARATOR),
+            ));
+          $namespaces[$namespace] = array($ns_path => $ns_path);
+        }
       }
     }
   }
-
   return $namespaces;
 }
 
 /**
  * Returns an array of theme paths by theme name.
  *
- *  @return array  The theme paths keyed by theme name.
+ * @return array  The theme paths keyed by theme name.
  */
-function twig_get_theme_paths() {
+function twig_get_theme_paths()
+{
   global $theme;
-
   $available_themes = list_themes();
   $available_themes[$theme]->info += array('base theme' => NULL);
   $theme_paths = array();
@@ -252,7 +219,8 @@ function twig_get_theme_paths() {
  * @return string[]
  *   The subdirectories.
  */
-function _twig_get_subdirectories_in($root) {
+function _twig_get_subdirectories_in($root)
+{
   if (!is_dir($root)) {
     $root = dirname($root);
   }
@@ -282,7 +250,8 @@ function _twig_get_subdirectories_in($root) {
  * @return bool
  *   True is valid, otherwise False.
  */
-function twig_cache_scheme_is_valid($scheme) {
+function twig_cache_scheme_is_valid($scheme)
+{
   if (file_stream_wrapper_valid_scheme(file_uri_scheme($scheme))) {
     $scheme = drupal_dirname($scheme);
     if (is_dir($scheme) && is_writable($scheme)) {
@@ -299,18 +268,20 @@ function twig_cache_scheme_is_valid($scheme) {
  * @return string
  *   The scheme
  */
-function twig_get_cache_scheme() {
+function twig_get_cache_scheme()
+{
   $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
 
   if (isset($streamwrappers['twigcache'])) {
     return 'twigcache://';
-  }
-  elseif (variable_get('file_private_path', FALSE) == TRUE) {
-    return 'private://twig_cache/';
-  }
-  else {
+  } elseif
+  (FALSE !== $cache_path = variable_get('file_twigcache_path', FALSE)) {
+    return $cache_path;
+  } elseif (variable_get('file_private_path', FALSE) == TRUE) {
+    return 'private://twig_cache';
+  } else {
     // Fallback and use the twig_cache folder in public://.
-    return 'public://twig_cache/';
+    return 'public://twig_cache';
   }
 }
 
@@ -322,13 +293,15 @@ function twig_get_cache_scheme() {
  *
  * @throws ErrorException
  */
-function twig_get_cache_bin() {
+function twig_get_cache_bin()
+{
   static $cache_bin;
 
   if (!is_object($cache_bin)) {
     $cache_scheme = twig_get_cache_scheme();
     list($scheme, $target) = explode('://', $cache_scheme, 2);
     $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
+
     if (!twig_cache_scheme_is_valid($cache_scheme)) {
       $directory = $wrapper->getDirectoryPath();
 
