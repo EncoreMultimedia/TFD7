@@ -5,6 +5,6 @@
 * @implements hook_system_theme_engine_info()
 */
 function tfd7_system_theme_engine_info() {
-  $theme_engines['twig'] = drupal_get_path('module', 'tfd7') . 'twig.engine';
+  $theme_engines['twig'] = drupal_get_path('module', 'tfd7') . '/twig.engine';
   return $theme_engines;
 }
