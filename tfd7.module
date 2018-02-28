@@ -1,10 +1,60 @@
 <?php
 /**
-* Register the Twig engine in Drupal.
-* 
-* @implements hook_system_theme_engine_info()
-*/
-function tfd7_system_theme_engine_info() {
+ * Register the Twig engine in Drupal.
+ *
+ * @implements hook_system_theme_engine_info()
+ */
+function tfd7_system_theme_engine_info()
+{
   $theme_engines['twig'] = drupal_get_path('module', 'tfd7') . '/twig.engine';
   return $theme_engines;
 }
+
+/**
+ * Implements hook_stream_wrappers().
+ */
+function tfd7_stream_wrappers()
+{
+  $wrappers['twigcache'] = array(
+    'name' => t('Twig cache files'),
+    'class' => 'TFD7CacheStreamWrapper',
+    'description' => t('Twig cache files, prefered outside of webroot'),
+    'type' => STREAM_WRAPPERS_LOCAL_HIDDEN,
+  );
+  return $wrappers;
+}
+
+/**
+ * The streamwrapper to rule them all ;-)
+ *
+ * Class TFD7CacheStreamWrapper
+ */
+class TFD7CacheStreamWrapper extends DrupalPrivateStreamWrapper
+{
+  /**
+   * Returns the directory path where the Twig Cache Files will be stored.
+   * @return null|string
+   */
+  public function getDirectoryPath()
+  {
+    if (FALSE !== $cache_path = variable_get('file_twigcache_path', FALSE)) {
+      return $cache_path;
+    } elseif
+    (true === variable_get('file_private_path', FALSE)) {
+      return 'private://twig_cache';
+    } else {
+      // Fallback and use the twig_cache folder in public://.
+      return 'public://twig_cache';
+    }
+  }
+
+  /**
+   * Twig cache files are not meant to be loaded through a browser!
+   * @return bool|string
+   */
+  public function getExternalUrl()
+  {
+    return false;
+  }
+}
+

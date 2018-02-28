@@ -25,7 +25,7 @@
 if (!class_exists('TFD_Cache_Filesystem') && file_exists(__DIR__ . '/vendor/autoload.php')) {
   include_once __DIR__ . '/vendor/autoload.php';
 } else {
-  // throw new Exception('You need to run composer install before using TFD7');
+  throw new Exception('You need to run composer install before using TFD7');
 }
 
 /**
@@ -271,17 +271,8 @@ function twig_cache_scheme_is_valid($scheme)
 function twig_get_cache_scheme()
 {
   $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
-
   if (isset($streamwrappers['twigcache'])) {
     return 'twigcache://';
-  } elseif
-  (FALSE !== $cache_path = variable_get('file_twigcache_path', FALSE)) {
-    return $cache_path;
-  } elseif (variable_get('file_private_path', FALSE) == TRUE) {
-    return 'private://twig_cache';
-  } else {
-    // Fallback and use the twig_cache folder in public://.
-    return 'public://twig_cache';
   }
 }
 
