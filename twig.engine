@@ -12,21 +12,7 @@
  * @version 7.x-3.x
  */
 
-/**
- * Check if the needed classes can be autoloaded or not.
- * If they can be autoloaded it most likely means the site is under
- * composer-manager.
- *
- * TODO
- * Check if loadable, if not then asume composer manager is not running
- * check for xautoload and for DRUPAL_ROOT/../vendor/autoload
- * if xautoload is there, hook in composer else bluntly require once the autoload.php
- */
-if (!class_exists('TFD_Cache_Filesystem') && file_exists(__DIR__ . '/vendor/autoload.php')) {
-  include_once __DIR__ . '/vendor/autoload.php';
-} else {
-  throw new Exception('You need to run composer install before using TFD7');
-}
+
 
 /**
  * Registers the .tpl.twig extension for twig templates.
@@ -46,6 +32,7 @@ function twig_extension()
  */
 function twig_init($theme)
 {
+
   if (file_exists($file = dirname($theme->filename) . '/template.php')) {
     require_once $file;
   }

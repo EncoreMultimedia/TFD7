@@ -4,6 +4,29 @@
  *
  * @implements hook_system_theme_engine_info()
  */
+
+/**
+ * Implements hook_boot().
+ *
+ * Check if the needed classes can be autoloaded or not.
+ * If they can not be autoloaded try some last resorts and
+ * else fail with an exception.
+ */
+function tfd7_boot()
+{
+  if (!class_exists('TFD_Cache_Filesystem')) {
+    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+      require_once __DIR__ . '/vendor/autoload.php';
+    } elseif (file_exists(DRUPAL_ROOT . '/../vendor/autoload.php')) {
+      require_once DRUPAL_ROOT . '/../vendor/autoload.php';
+    } elseif (file_exists(DRUPAL_ROOT . '/vendor/autoload.php')) {
+      require_once DRUPAL_ROOT . '/vendor/autoload.php';
+    } else {
+      throw new Exception('You need to have some form of autoloading before using TFD7');
+    }
+  }
+}
+
 function tfd7_system_theme_engine_info()
 {
   $theme_engines['twig'] = drupal_get_path('module', 'tfd7') . '/twig.engine';
