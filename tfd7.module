@@ -47,6 +47,54 @@ function tfd7_stream_wrappers()
   return $wrappers;
 }
 
+function tfd7_form_system_file_system_settings_alter(&$form, &$form_state, $form_id)
+{
+
+  $weight = 10;
+  $form['file_public_path']['#weight'] = $weight;
+  $weight++;
+  if (array_key_exists('file_private_path',$form)){
+    $form['file_private_path']['#weight'] = $weight;
+    $weight++;
+  }
+
+
+  $form['file_twigcache_path'] = array(
+    '#type' => 'textfield',
+    '#weight' => $weight,
+    '#title' => t('Twigcache file system path'),
+    '#default_value' => variable_get('file_twigcache_path', conf_path() . '/files'),
+    '#maxlength' => 255,
+    '#description' => t('A local file system path where twig cache files will be stored. This directory preferably is located outside the public webroot. The directory must be writable by Drupal'),
+    '#after_build' => array('system_check_directory'),
+  );
+  $weight++;
+  if (array_key_exists('file_temporary_path',$form)){
+    $form['file_temporary_path']['#weight'] = $weight;
+  }
+  $form['#submit'][] = 'tfd7_form_system_file_system_settings_submit';
+}
+
+function tfd7_form_system_file_system_settings_submit(&$form, &$form_state)
+{
+  if ($form_state['values']['file_twigcache_path'] !== '') {
+    variable_set('file_twigcache_path', $form_state['values']['file_twigcache_path']);
+  }
+}
+
+
+
+/**
+ * Implements hook_flush_cashes()
+ */
+function tfd7_flush_caches()
+{
+  if (function_exists('twig_clear_cache')) {
+    twig_clear_cache();
+  }
+
+}
+
 /**
  * The streamwrapper to rule them all ;-)
  *
