@@ -53,7 +53,7 @@ function tfd7_form_system_file_system_settings_alter(&$form, &$form_state, $form
   $weight = 10;
   $form['file_public_path']['#weight'] = $weight;
   $weight++;
-  if (array_key_exists('file_private_path',$form)){
+  if (array_key_exists('file_private_path', $form)) {
     $form['file_private_path']['#weight'] = $weight;
     $weight++;
   }
@@ -69,7 +69,7 @@ function tfd7_form_system_file_system_settings_alter(&$form, &$form_state, $form
     '#after_build' => array('system_check_directory'),
   );
   $weight++;
-  if (array_key_exists('file_temporary_path',$form)){
+  if (array_key_exists('file_temporary_path', $form)) {
     $form['file_temporary_path']['#weight'] = $weight;
   }
   $form['#submit'][] = 'tfd7_form_system_file_system_settings_submit';
@@ -81,7 +81,6 @@ function tfd7_form_system_file_system_settings_submit(&$form, &$form_state)
     variable_set('file_twigcache_path', $form_state['values']['file_twigcache_path']);
   }
 }
-
 
 
 /**
@@ -104,19 +103,18 @@ class TFD7CacheStreamWrapper extends DrupalPrivateStreamWrapper
 {
   /**
    * Returns the directory path where the Twig Cache Files will be stored.
-   * @return null|string
+   * @return string containing the best available option for twig cache
    */
   public function getDirectoryPath()
   {
     if (FALSE !== $cache_path = variable_get('file_twigcache_path', FALSE)) {
       return $cache_path;
     } elseif
-    (true === variable_get('file_private_path', FALSE)) {
-      return 'private://twig_cache';
-    } else {
-      // Fallback and use the twig_cache folder in public://.
-      return 'public://twig_cache';
+    (FALSE !== $cache_path = variable_get('file_private_path', FALSE)) {
+      return $cache_path . '/twig_cache';
     }
+    $cache_path = variable_get('file_public_path');
+    return $cache_path . '/twig_cache';
   }
 
   /**
