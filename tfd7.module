@@ -108,13 +108,19 @@ class TFD7CacheStreamWrapper extends DrupalPrivateStreamWrapper
   public function getDirectoryPath()
   {
     if (FALSE !== $cache_path = variable_get('file_twigcache_path', FALSE)) {
-      return $cache_path;
+      $cache_path .= '';  // I know.. bullshit..
     } elseif
     (FALSE !== $cache_path = variable_get('file_private_path', FALSE)) {
-      return $cache_path . '/twig_cache';
+      $cache_path .= '/twig_cache';
+    } else {
+      $cache_path = variable_get('file_public_path');
+      $cache_path .= '/twig_cache';
+
     }
-    $cache_path = variable_get('file_public_path');
-    return $cache_path . '/twig_cache';
+    if (!is_dir($cache_path)) {
+      file_prepare_directory($cache_path, [FILE_CREATE_DIRECTORY]);
+    }
+    return $cache_path;
   }
 
   /**
