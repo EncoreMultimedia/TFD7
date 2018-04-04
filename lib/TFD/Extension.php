@@ -8,7 +8,7 @@
  *
  * @author René Bakx
  * @co-maintainer Pol Dellaiera
- 
+
  * @description register the drupal specific tags and filters within a proper
  * declared twig extension
  */
@@ -137,8 +137,9 @@ class TFD_Extension extends Twig_Extension {
     $functions['get_form_errors'] = new Twig_SimpleFunction('get_form_errors', [$this, 'form_get_errors']);
     $functions['children'] = new Twig_SimpleFunction('children', [$this, 'get_children']);
     $functions['theme_path'] = new Twig_SimpleFunction('theme_path', [$this, 'theme_path']);
+    $functions['embed_view'] = new Twig_SimpleFunction('embed_view', [$this, 'embed_view']);
     if (function_exists('xdebug_break')) {
-      $functions[] = new Twig_SimpleFunction('xdebug_break', [$this,'xdebug_break'],
+      $functions['xdebug_break'] = new Twig_SimpleFunction('xdebug_break', [$this,'xdebug_break'],
         [
           'needs_environment' => TRUE,
           'needs_context' => TRUE,
@@ -236,6 +237,14 @@ class TFD_Extension extends Twig_Extension {
     xdebug_break();
   }
 
+  public function embed_view($view,$display){
+    $view = views_get_view($view);
+    $view->set_display($display);
+
+    $view->execute();
+    $result = $view->render();
+    return $result;
+  }
   /**
    * Additional Twig filter provided in Drupal 8 to render array ommitting
    * certain elements in the array.
