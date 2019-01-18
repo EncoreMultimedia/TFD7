@@ -71,16 +71,6 @@ function twig_render_template($template, $variables = array()) {
 }
 
 /**
- * Clears the entire template cache folder.
- *
- * Note: This is not a hook because it's not a .module file.
- * This function must be called from another module.
- */
-function twig_clear_cache() {
-  twig_get_cache_bin()->deleteAll();
-}
-
-/**
  * Returns a singleton version of the twig template engine.
  *
  * @return TFD_Environment
@@ -113,6 +103,76 @@ function twig_get_instance() {
   }
 
   return $twig_engine;
+}
+
+/**
+ * Get the cache bin.
+ *
+ * @return TFD_Cache_Filesystem
+ *   The cache bin.
+ *
+ * @throws ErrorException
+ */
+function twig_get_cache_bin() {
+  static $cache_bin;
+
+  if (!is_object($cache_bin)) {
+    $cache_scheme = twig_get_cache_scheme();
+    list($scheme, $target) = explode('://', $cache_scheme, 2);
+    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
+
+    if (!twig_cache_scheme_is_valid($cache_scheme)) {
+      $directory = $wrapper->getDirectoryPath();
+
+      $message = t('Could not write in cache directory: @directory', array(
+        '@directory' => $directory,
+      ));
+
+      watchdog('twig', $message, array(), WATCHDOG_ERROR);
+      throw new ErrorException($message);
+    }
+
+    if ($target) {
+      $wrapper->setUri($cache_scheme);
+    }
+
+    $cache_bin = new TFD_Cache_Filesystem($wrapper);
+  }
+
+  return $cache_bin;
+}
+
+/**
+ * Get the cache scheme.
+ *
+ * @return string
+ *   The scheme
+ */
+function twig_get_cache_scheme() {
+  $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
+  if (isset($streamwrappers['twigcache'])) {
+    return 'twigcache://';
+  }
+}
+
+/**
+ * Tests if it is a writable directory to store the twig cache files in.
+ *
+ * @param string $scheme
+ *   The scheme to validate.
+ *
+ * @return bool
+ *   True is valid, otherwise False.
+ */
+function twig_cache_scheme_is_valid($scheme) {
+  if (file_stream_wrapper_valid_scheme(file_uri_scheme($scheme))) {
+    $scheme = drupal_dirname($scheme);
+    if (is_dir($scheme) && is_writable($scheme)) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 
 /**
@@ -178,6 +238,16 @@ function twig_get_theme_paths() {
 }
 
 /**
+ * Clears the entire template cache folder.
+ *
+ * Note: This is not a hook because it's not a .module file.
+ * This function must be called from another module.
+ */
+function twig_clear_cache() {
+  twig_get_cache_bin()->deleteAll();
+}
+
+/**
  * Return the list of sub directories in a directory.
  *
  * TODO: Is there a Drupal core function for this already?
@@ -207,74 +277,4 @@ function _twig_get_subdirectories_in($root) {
   }
 
   return $paths;
-}
-
-/**
- * Tests if it is a writable directory to store the twig cache files in.
- *
- * @param string $scheme
- *   The scheme to validate.
- *
- * @return bool
- *   True is valid, otherwise False.
- */
-function twig_cache_scheme_is_valid($scheme) {
-  if (file_stream_wrapper_valid_scheme(file_uri_scheme($scheme))) {
-    $scheme = drupal_dirname($scheme);
-    if (is_dir($scheme) && is_writable($scheme)) {
-      return TRUE;
-    }
-  }
-
-  return FALSE;
-}
-
-/**
- * Get the cache scheme.
- *
- * @return string
- *   The scheme
- */
-function twig_get_cache_scheme() {
-  $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
-  if (isset($streamwrappers['twigcache'])) {
-    return 'twigcache://';
-  }
-}
-
-/**
- * Get the cache bin.
- *
- * @return TFD_Cache_Filesystem
- *   The cache bin.
- *
- * @throws ErrorException
- */
-function twig_get_cache_bin() {
-  static $cache_bin;
-
-  if (!is_object($cache_bin)) {
-    $cache_scheme = twig_get_cache_scheme();
-    list($scheme, $target) = explode('://', $cache_scheme, 2);
-    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
-
-    if (!twig_cache_scheme_is_valid($cache_scheme)) {
-      $directory = $wrapper->getDirectoryPath();
-
-      $message = t('Could not write in cache directory: @directory', array(
-        '@directory' => $directory,
-      ));
-
-      watchdog('twig', $message, array(), WATCHDOG_ERROR);
-      throw new ErrorException($message);
-    }
-
-    if ($target) {
-      $wrapper->setUri($cache_scheme);
-    }
-
-    $cache_bin = new TFD_Cache_Filesystem($wrapper);
-  }
-
-  return $cache_bin;
 }
