@@ -27,8 +27,11 @@ function twig_extension() {
  * Note: called at rebuild registry!
  */
 function twig_init($theme) {
-  if (file_exists($file = dirname($theme->filename) . '/template.php')) {
-    require_once $file;
+  require_once 'vendor/autoload.php';
+
+  $file = dirname($theme->filename) . '/template.php';
+  if (file_exists($file)) {
+    require_once DRUPAL_ROOT . DIRECTORY_SEPARATOR . $file;
   }
 }
 
@@ -49,22 +52,20 @@ function twig_theme($existing, $type, $theme, $path) {
  *
  * Use twig template if available or let drupal fall back to phptemplate.
  */
-function twig_render_template($template, $variables = array()) {
-  $content = '';
-
-  if (file_exists($template)) {
-    try {
-      $twig = twig_get_instance();
-      $template = $twig->loadTemplate($template);
-      $content = $template->render($variables);
-    }
-    catch (Exception $e) {
-      $content = t('Twig error "!error"', array('!error' => $e->getMessage()));
-      die($e->getMessage());
-    }
+function twig_render_template($template, array $variables = array()) {
+  if (!file_exists($template)) {
+    return t('Template (!template) not found.', array('!template' => $template));
   }
-  else {
-    $content = t('Template (!template) not found.', array('!template' => $template));
+
+  $content = '';
+  try {
+    $twig = twig_get_instance();
+    $template = $twig->loadTemplate($template);
+    $content = $template->render($variables);
+  }
+  catch (Exception $e) {
+    $content = t('Twig error "!error"', array('!error' => $e->getMessage()));
+    die($e->getMessage());
   }
 
   return $content;
@@ -118,10 +119,10 @@ function twig_get_cache_bin() {
 
   if (!is_object($cache_bin)) {
     $cache_scheme = twig_get_cache_scheme();
-    list($scheme, $target) = explode('://', $cache_scheme, 2);
-    $wrapper = file_stream_wrapper_get_instance_by_scheme($scheme);
+    $cache_uri = $cache_scheme . '://';
+    $wrapper = file_stream_wrapper_get_instance_by_scheme($cache_scheme);
 
-    if (!twig_cache_scheme_is_valid($cache_scheme)) {
+    if (!twig_cache_scheme_is_valid($cache_uri)) {
       $directory = $wrapper->getDirectoryPath();
 
       $message = t('Could not write in cache directory: @directory', array(
@@ -132,10 +133,7 @@ function twig_get_cache_bin() {
       throw new ErrorException($message);
     }
 
-    if ($target) {
-      $wrapper->setUri($cache_scheme);
-    }
-
+    $wrapper->setUri($cache_uri);
     $cache_bin = new TFD_Cache_Filesystem($wrapper);
   }
 
@@ -151,8 +149,12 @@ function twig_get_cache_bin() {
 function twig_get_cache_scheme() {
   $streamwrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL_HIDDEN);
   if (isset($streamwrappers['twigcache'])) {
-    return 'twigcache://';
+    return 'twigcache';
   }
+  elseif (isset($streamwrappers['temporary'])) {
+    return 'temporary';
+  }
+  return FALSE;
 }
 
 /**
@@ -164,9 +166,9 @@ function twig_get_cache_scheme() {
  * @return bool
  *   True is valid, otherwise False.
  */
-function twig_cache_scheme_is_valid($scheme) {
-  if (file_stream_wrapper_valid_scheme(file_uri_scheme($scheme))) {
-    $scheme = drupal_dirname($scheme);
+function twig_cache_scheme_is_valid($scheme_uri) {
+  if (file_stream_wrapper_valid_scheme(file_uri_scheme($scheme_uri))) {
+    $scheme = drupal_dirname($scheme_uri);
     if (is_dir($scheme) && is_writable($scheme)) {
       return TRUE;
     }
