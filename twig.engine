@@ -27,8 +27,6 @@ function twig_extension() {
  * Note: called at rebuild registry!
  */
 function twig_init($theme) {
-  require_once 'vendor/autoload.php';
-
   $file = dirname($theme->filename) . '/template.php';
   if (file_exists($file)) {
     require_once DRUPAL_ROOT . DIRECTORY_SEPARATOR . $file;
